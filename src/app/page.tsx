@@ -144,7 +144,7 @@ export default function Home() {
           <h1 className="text-6xl font-bold">Taikosend</h1>
         </div>
 
-        <div className="card w-[700px] shadow-xl p-7 bg-[#efefef]">
+        <div className="card w-[600px] shadow-xl p-7 bg-[#efefef]">
           {!!transactionHash ? (
             <div>
               <h2 className="text-4xl font-bold text-center mb-2">All done! 🚀🚀</h2>
@@ -174,7 +174,7 @@ export default function Home() {
         </div>
 
       </main >
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
+      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center pb-6">
         Built with 💚 for the grant factory hackaton
       </footer>
     </div >
