@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import ContextProvider from "../../context";
 import { Toaster } from "react-hot-toast";
+import dynamic from "next/dynamic";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -20,12 +20,16 @@ export const metadata: Metadata = {
   description: "Send tokens to multiple addresses in one transaction",
 };
 
+const DynamicContextProvider = dynamic(
+  () => import("@/components/authentication").then((mod) => mod.AuthContextProvider),
+  { ssr: true }
+);
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const cookies = null;
 
   return (
     <html lang="en">
@@ -38,9 +42,9 @@ export default function RootLayout({
             style: { maxWidth: 425, zIndex: 9999 },
           }}
         />
-        <ContextProvider cookies={cookies}>
+        <DynamicContextProvider>
           {children}
-        </ContextProvider>
+        </DynamicContextProvider>
       </body>
     </html>
   );

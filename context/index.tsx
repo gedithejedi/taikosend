@@ -2,10 +2,10 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createAppKit } from '@reown/appkit/react'
-import { taikoHekla } from '@reown/appkit/networks'
+import { taikoHekla, taiko } from '@reown/appkit/networks'
 import React, { ReactNode } from 'react'
 import { cookieToInitialState, WagmiProvider, type Config } from 'wagmi'
-import { projectId, wagmiAdapter } from '../utils/config'
+import { projectId, wagmiAdapter } from '../src/utils/config'
 
 // Set up queryClient
 const queryClient = new QueryClient()
@@ -25,7 +25,7 @@ const metadata = {
 createAppKit({
   adapters: [wagmiAdapter],
   projectId,
-  networks: [taikoHekla],
+  networks: [taikoHekla, taiko],
   defaultNetwork: taikoHekla,
   metadata: metadata,
   features: {

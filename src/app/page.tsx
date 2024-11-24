@@ -4,13 +4,23 @@ import { useMutation } from '@tanstack/react-query';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { erc20Abi, isAddress, parseUnits } from 'viem';
+import { checksumAddress, erc20Abi, isAddress, parseUnits } from 'viem';
 import { getPublicClient, getWalletClient, waitForTransactionReceipt } from "wagmi/actions";
-import { wagmiAdapter } from '../../utils/config';
-import senderAbi from '../../utils/sender.json';
+import { Chain } from '../utils/config';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
+import senderAbi from '../utils/sender.json';
 import { useAccount } from 'wagmi';
+import { walletConfig } from '@/components/authentication/AuthContextProvider/AuthContextProvider';
+import { shortenAddress } from '@/utils/utils';
 
-const contractAddress = "0x82D8824255aC1030E5F01Ad7984B505Ad9De0C2D"
+const contracts: Record<Chain, string> = {
+  [Chain.Mainnet]: "0x8e4dec5993D81D3bF3a4972b734D5EdF4Bdb1dB8",
+  [Chain.Hekla]: "0x82D8824255aC1030E5F01Ad7984B505Ad9De0C2D"
+}
+const explorers: Record<Chain, string> = {
+  [Chain.Mainnet]: "https://taikoscan.io/tx/",
+  [Chain.Hekla]: "https://hekla.taikoscan.io/tx/"
+}
 
 function parseAddresses(input: string): Array<{ address: string; amount: string }> {
   const lines = input.trim().split('\n');
@@ -34,13 +44,15 @@ export default function Home() {
   const [addresses, setAddresses] = useState("");
   const [tokenAddress, setTokenAddress] = useState("");
   const [hasHydrated, setHasHydrated] = useState(false);
-  const [transactionHash, setTransactionHash] = useState("");
+  const [transactionHash, setTransactionHash] = useState("0x13f922d48e438f4705a04ec0cfd3164efa6c883899e6e6af535d4cb360529234");
 
-  const { address } = useAccount();
+  const { address, chain, isConnected } = useAccount();
+  const chainId = chain?.id || "";
 
   const { mutate: onSend, isPending: isSending } = useMutation({
     mutationFn: async () => {
       const toastId = toast.loading("Sign the transactions to send the tokens.");
+      const contractAddress = contracts[chainId as Chain] as `0x${string}`;
 
       try {
         if (!address) return toast.error("Please connect your wallet.", { id: toastId });
@@ -51,16 +63,18 @@ export default function Home() {
         const parsedAddys = [] as string[];
         const parsedAmounts = [] as bigint[];
 
-        const client = getPublicClient(wagmiAdapter.wagmiConfig);
-        const walletClient = await getWalletClient(wagmiAdapter.wagmiConfig);
+        const client = getPublicClient(walletConfig);
+        const walletClient = await getWalletClient(walletConfig);
+        const [account] = await walletClient.getAddresses();
+
 
         if (!client) return console.error("no client");
 
         const allowance = await client.readContract({
-          address: tokenAddress,
+          address: checksumAddress(tokenAddress),
           abi: erc20Abi,
           functionName: 'allowance',
-          args: [address, contractAddress],
+          args: [account, contractAddress],
         })
 
         const decimals = await client.readContract({
@@ -95,14 +109,14 @@ export default function Home() {
 
           if (allowance < totalAmount) {
             const { request } = await client.simulateContract({
-              account: address,
+              account,
               abi: erc20Abi,
               address: tokenAddress,
               functionName: "approve",
               args: [contractAddress, totalAmount - allowance]
             });
             const approveHash = await walletClient.writeContract(request);
-            await waitForTransactionReceipt(wagmiAdapter.wagmiConfig, { hash: approveHash });
+            await waitForTransactionReceipt(walletConfig, { hash: approveHash });
           }
         } catch (e) {
           toast.error("Something went wrong while approving the tokens.", { id: toastId });
@@ -118,7 +132,7 @@ export default function Home() {
         });
 
         const hash = await walletClient.writeContract(request);
-        await waitForTransactionReceipt(wagmiAdapter.wagmiConfig, { hash });
+        await waitForTransactionReceipt(walletConfig, { hash });
         setTransactionHash(hash)
         toast.success("Tokens sent successfully.", { id: toastId });
       } catch (error) {
@@ -135,7 +149,7 @@ export default function Home() {
   return (
     <div className="flex flex-col items-center justify-between min-h-screen font-[family-name:var(--font-geist-sans)]">
       <header className='flex justify-end w-full p-3'>
-        <appkit-button />
+        <ConnectButton />
       </header>
 
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
@@ -148,8 +162,15 @@ export default function Home() {
           {!!transactionHash ? (
             <div>
               <h2 className="text-4xl font-bold text-center mb-2">All done! 🚀🚀</h2>
-              <p className="text-left mb-2">Your tokens have been successfully sent. You can view your transaction here:</p>
-              <a className='link' target='_blank' href={`https://hekla.taikoscan.io/tx/${transactionHash}`}>{transactionHash}</a>
+              <div className=''>
+                <p className="text-left mb-2 inline">Your tokens have been successfully sent. You can view your transaction here: </p>
+                <a className='link text-blue-600 inline-flex gap-1 items-center' target='_blank' href={`${explorers[chainId as Chain]}${transactionHash}`}>
+                  {/* <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="h-4 w-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
+                  </svg> */}
+                  {shortenAddress(transactionHash, 20, 20)}
+                </a>
+              </div>
             </div>
           ) : <div className='flex flex-col gap-4'>
             <label className="form-control w-full">
@@ -168,7 +189,7 @@ export default function Home() {
 
             <button disabled={isSending || !address || !hasHydrated} onClick={() => onSend()} className={`btn btn-primary mt-2 font-bold text-white hover:bg-primary-hover hover:text-primary rounded-full text-[16px]`}>
               {isSending ? <span className="loading loading-spinner"></span> : ""}
-              {!!hasHydrated && address ? "Send" : "Connect wallet"}
+              {!!hasHydrated && isConnected ? "Send" : "Connect wallet"}
             </button>
           </div>}
         </div>
