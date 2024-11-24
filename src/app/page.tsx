@@ -44,7 +44,7 @@ export default function Home() {
   const [addresses, setAddresses] = useState("");
   const [tokenAddress, setTokenAddress] = useState("");
   const [hasHydrated, setHasHydrated] = useState(false);
-  const [transactionHash, setTransactionHash] = useState("0x13f922d48e438f4705a04ec0cfd3164efa6c883899e6e6af535d4cb360529234");
+  const [transactionHash, setTransactionHash] = useState("");
 
   const { address, chain, isConnected } = useAccount();
   const chainId = chain?.id || "";
