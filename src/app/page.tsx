@@ -165,38 +165,62 @@ export default function Home() {
               <div className=''>
                 <p className="text-left mb-2 inline">Your tokens have been successfully sent. You can view your transaction here: </p>
                 <a className='link text-blue-600 inline-flex gap-1 items-center' target='_blank' href={`${explorers[chainId as Chain]}${transactionHash}`}>
-                  {/* <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="h-4 w-4">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
-                  </svg> */}
                   {shortenAddress(transactionHash, 20, 20)}
                 </a>
               </div>
             </div>
-          ) : <div className='flex flex-col gap-4'>
-            <label className="form-control w-full">
-              <div className="label">
-                <span className="label-text">Token address</span>
+          ) : (
+            <div>
+              <div className='w-full flex justify-end'>
+                {/* @ts-ignore: */}
+                <button className="btn btn-circle btn-xs rounded-full border border-foreground text-foreground" onClick={() => document.getElementById('info_modal')?.showModal()}>?</button>
               </div>
-              <input disabled={isSending} value={tokenAddress} onChange={(e) => setTokenAddress(e.target.value)} type="text" placeholder="0xAbC" className="input input-bordered w-full" />
-            </label>
+              <div className='flex flex-col gap-4'>
+                <label className="form-control w-full">
+                  <div className="label">
+                    <span className="label-text">Token address</span>
+                  </div>
+                  <input disabled={isSending} value={tokenAddress} onChange={(e) => setTokenAddress(e.target.value)} type="text" placeholder="0xAbC" className="input input-bordered w-full" />
+                </label>
 
-            <label className="form-control">
-              <div className="label">
-                <span className="label-text">Stakeholder details</span>
+                <label className="form-control">
+                  <div className="label">
+                    <span className="label-text">Stakeholder details</span>
+                  </div>
+                  <textarea disabled={isSending} value={addresses} onChange={(e) => setAddresses(e.target.value)} className="textarea textarea-bordered h-24" placeholder={`0xeD38571DEE9605EDB90323964E2F12Ad026c6C11,10`}></textarea>
+                </label>
+
+                <button disabled={isSending || !address || !hasHydrated} onClick={() => onSend()} className={`btn btn-primary mt-2 font-bold text-white hover:bg-primary-hover hover:text-primary rounded-full text-[16px]`}>
+                  {isSending ? <span className="loading loading-spinner"></span> : ""}
+                  {!!hasHydrated && isConnected ? "Send" : "Connect wallet"}
+                </button>
               </div>
-              <textarea disabled={isSending} value={addresses} onChange={(e) => setAddresses(e.target.value)} className="textarea textarea-bordered h-24" placeholder={`0xeD38571DEE9605EDB90323964E2F12Ad026c6C11,10`}></textarea>
-            </label>
-
-            <button disabled={isSending || !address || !hasHydrated} onClick={() => onSend()} className={`btn btn-primary mt-2 font-bold text-white hover:bg-primary-hover hover:text-primary rounded-full text-[16px]`}>
-              {isSending ? <span className="loading loading-spinner"></span> : ""}
-              {!!hasHydrated && isConnected ? "Send" : "Connect wallet"}
-            </button>
-          </div>}
+            </div>
+          )}
         </div>
+
+        <dialog id="info_modal" className="modal">
+          <div className="modal-box w-11/12 max-w-5xl">
+            <h3 className="font-bold text-lg mb-4">How does it work?</h3>
+            <p className='mb-4'>
+              Taikosend allows you to send tokens to multiple addresses in one transaction.
+              We make this easy in three simple steps:
+            </p>
+
+            <ol className='list-decimal pl-4'>
+              <li>Connect your wallet.</li>
+              <li>Enter the wallets of the recipients and their dedicated amounts.</li>
+              <li>Approve and send tokens.</li>
+            </ol>
+          </div>
+          <form method="dialog" className="modal-backdrop">
+            <button>close</button>
+          </form>
+        </dialog>
 
       </main >
       <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center pb-6">
-        Built with 💚 for the grant factory hackaton
+        Built with 💚 for everyone to use :)
       </footer>
     </div >
   );
