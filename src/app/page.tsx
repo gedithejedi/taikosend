@@ -22,6 +22,10 @@ const explorers: Record<Chain, string> = {
   [Chain.Hekla]: "https://hekla.taikoscan.io/"
 }
 
+const defaultAddresses = `0xD0b980AaF98fC6eA1c0659bbC7B4981085902163,10
+0xcc16C81B5B9C61Dbe6C2F8e534564A5733E9E181,2
+0x316A02A2781697C6533a0860b4FbB2eC31a61977,14`
+
 function parseAddresses(input: string): Array<{ address: string; amount: string }> {
   const lines = input.trim().split('\n');
   const result: Array<{ address: string; amount: string }> = [];
@@ -41,7 +45,7 @@ function parseAddresses(input: string): Array<{ address: string; amount: string 
 }
 
 export default function Home() {
-  const [addresses, setAddresses] = useState("");
+  const [addresses, setAddresses] = useState(defaultAddresses);
   const [tokenAddress, setTokenAddress] = useState("");
   const [hasHydrated, setHasHydrated] = useState(false);
   const [transactionHash, setTransactionHash] = useState("");
@@ -49,7 +53,7 @@ export default function Home() {
 
   const { address, chain, isConnected } = useAccount();
   const chainId = chain?.id || "";
-  const contractAddress = contracts[chainId as Chain] as `0x${string}`;
+  const contractAddress = contracts[chainId as Chain || Chain.Mainnet] as `0x${string}`;
 
   const { mutate: onSend, isPending: isSending } = useMutation({
     mutationFn: async () => {
@@ -159,7 +163,7 @@ export default function Home() {
           <h1 className="text-6xl font-bold">Taikosend</h1>
         </div>
 
-        <div className="card w-[600px] shadow-xl p-7 bg-[#efefef]">
+        <div className="card w-[600px] mb-8 shadow-xl p-7 bg-[#efefef]">
           {!!transactionHash ? (
             <div>
               <h2 className="text-4xl font-bold text-center mb-2">All done! 🚀🚀</h2>
@@ -188,7 +192,7 @@ export default function Home() {
                   <div className="label">
                     <span className="label-text">Stakeholder details</span>
                   </div>
-                  <textarea disabled={isSending} value={addresses} onChange={(e) => setAddresses(e.target.value)} className="textarea textarea-bordered h-24" placeholder={`0xeD38571DEE9605EDB90323964E2F12Ad026c6C11,10`}></textarea>
+                  <textarea disabled={isSending} value={addresses} onChange={(e) => setAddresses(e.target.value)} className="textarea textarea-bordered min-h-32" placeholder={`0xeD38571DEE9605EDB90323964E2F12Ad026c6C11,10`}></textarea>
                 </label>
 
                 <button disabled={isSending || !address || !hasHydrated} onClick={() => onSend()} className={`btn btn-primary mt-2 font-bold text-white hover:bg-primary-hover hover:text-primary rounded-full text-[16px]`}>
@@ -225,7 +229,7 @@ export default function Home() {
           Built with 💚 to use by everyone, for free :)
         </p>
         <p>
-          <a href={`${explorers[chainId as Chain]}address/${contractAddress || "0x8e4dec5993D81D3bF3a4972b734D5EdF4Bdb1dB8"}`} className='link'>{contractAddress || "0x8e4dec5993D81D3bF3a4972b734D5EdF4Bdb1dB8"}</a>
+          <a target="_blank" href={`${explorers[chainId as Chain || Chain.Mainnet]}address/${contractAddress}`} className='link'>{contractAddress}</a>
         </p>
       </footer>
     </div >
