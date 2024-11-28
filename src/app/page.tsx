@@ -18,8 +18,8 @@ const contracts: Record<Chain, string> = {
   [Chain.Hekla]: "0x82D8824255aC1030E5F01Ad7984B505Ad9De0C2D"
 }
 const explorers: Record<Chain, string> = {
-  [Chain.Mainnet]: "https://taikoscan.io/tx/",
-  [Chain.Hekla]: "https://hekla.taikoscan.io/tx/"
+  [Chain.Mainnet]: "https://taikoscan.io/",
+  [Chain.Hekla]: "https://hekla.taikoscan.io/"
 }
 
 function parseAddresses(input: string): Array<{ address: string; amount: string }> {
@@ -46,13 +46,14 @@ export default function Home() {
   const [hasHydrated, setHasHydrated] = useState(false);
   const [transactionHash, setTransactionHash] = useState("");
 
+
   const { address, chain, isConnected } = useAccount();
   const chainId = chain?.id || "";
+  const contractAddress = contracts[chainId as Chain] as `0x${string}`;
 
   const { mutate: onSend, isPending: isSending } = useMutation({
     mutationFn: async () => {
       const toastId = toast.loading("Sign the transactions to send the tokens.");
-      const contractAddress = contracts[chainId as Chain] as `0x${string}`;
 
       try {
         if (!address) return toast.error("Please connect your wallet.", { id: toastId });
@@ -164,7 +165,7 @@ export default function Home() {
               <h2 className="text-4xl font-bold text-center mb-2">All done! 🚀🚀</h2>
               <div className=''>
                 <p className="text-left mb-2 inline">Your tokens have been successfully sent. You can view your transaction here: </p>
-                <a className='link text-blue-600 inline-flex gap-1 items-center' target='_blank' href={`${explorers[chainId as Chain]}${transactionHash}`}>
+                <a className='link text-blue-600 inline-flex gap-1 items-center' target='_blank' href={`${explorers[chainId as Chain]}tx/${transactionHash}`}>
                   {shortenAddress(transactionHash, 20, 20)}
                 </a>
               </div>
@@ -219,8 +220,13 @@ export default function Home() {
         </dialog>
 
       </main >
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center pb-6">
-        Built with 💚 for everyone to use :)
+      <footer className="row-start-3 flex gap-2 flex-wrap items-center justify-center pb-6 flex-col">
+        <p>
+          Built with 💚 to use by everyone, for free :)
+        </p>
+        <p>
+          <a href={`${explorers[chainId as Chain]}address/${contractAddress || "0x8e4dec5993D81D3bF3a4972b734D5EdF4Bdb1dB8"}`} className='link'>{contractAddress || "0x8e4dec5993D81D3bF3a4972b734D5EdF4Bdb1dB8"}</a>
+        </p>
       </footer>
     </div >
   );
